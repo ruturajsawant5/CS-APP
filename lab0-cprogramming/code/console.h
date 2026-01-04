@@ -1,3 +1,15 @@
+#ifndef CONSOLE_H
+#define CONSOLE_H
+
+#if !defined _XOPEN_SOURCE || _XOPEN_SOURCE != 700
+#error "Interfaces in this file require XSI extensions"
+#endif
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <sys/select.h>
+#include <sys/time.h>
+
 /* Implementation of simple command-line interface */
 
 /* Each command defined in terms of a function */
@@ -7,9 +19,9 @@ typedef bool (*cmd_function)(int argc, char *argv[]);
 /* Organized as linked list in alphabetical order */
 typedef struct CELE cmd_ele, *cmd_ptr;
 struct CELE {
-    char *name;
+    const char *name;
     cmd_function operation;
-    char *documentation;
+    const char *documentation;
     cmd_ptr next;
 };
 
@@ -19,30 +31,31 @@ typedef void (*setter_function)(int oldval);
 /* Integer-valued parameters */
 typedef struct PELE param_ele, *param_ptr;
 struct PELE {
-    char *name;
+    const char *name;
     int *valp;
-    char *documentation;
+    const char *documentation;
     /* Function that gets called whenever parameter changes */
     setter_function setter;
     param_ptr next;
 };
-    
+
 /* Initialize interpreter */
-void init_cmd();
+void init_cmd(void);
 
 /* Add a new command */
-void add_cmd(char *name, cmd_function operation, char *documentation);
+void add_cmd(const char *name, cmd_function operation,
+             const char *documentation);
 
 /* Add a new parameter */
-void add_param(char *name, int *valp, char *doccumentation,
-	       setter_function setter);
+void add_param(const char *name, int *valp, const char *documentation,
+               setter_function setter);
 
 /* Execute a command from a command line */
 bool interpret_cmd(char *cmdline);
 
 /* Execute a sequence of commands read from a file */
 bool interpret_file(FILE *fp);
-    
+
 /* Extract integer from text and store at loc */
 bool get_int(char *vname, int *loc);
 
@@ -63,24 +76,23 @@ void set_echo(bool on);
   The following calls set/clear that flag
 */
 
-void block_console();
-void unblock_console();
+void block_console(void);
+void unblock_console(void);
 
 /* Start command intrepretation.
    If infile_name is NULL, then read commands from stdin
-   Otherwise, use infile as command source 
+   Otherwise, use infile as command source
 */
 bool start_cmd(char *infile_name);
 
-
 /* Is it time to quit the command loop? */
-bool cmd_done();
+bool cmd_done(void);
 
 /* Complete command interpretation */
 /* Return true if no errors occurred */
-bool finish_cmd();
+bool finish_cmd(void);
 
-/* 
+/*
    Handle command processing in program that uses select as main
    control loop.  Like select, but (if console unblocked) it checks
    whether command input either present in internal buffer or readable
@@ -92,8 +104,10 @@ bool finish_cmd();
 */
 
 int cmd_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
-	       struct timeval *timeout);
+               struct timeval *timeout);
 
-/* Run command loop.  Non-null infile_name implies read commands from that file */
+/* Run command loop.  Non-null infile_name implies read commands from that file
+ */
 bool run_console(char *infile_name);
 
+#endif /* console.h */

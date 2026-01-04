@@ -5,12 +5,12 @@ show
 # Create empty queue
 new
 # Fill it with some values.  First at the head
-ih 2
-ih 1
-ih 3
+ih dolphin
+ih bear
+ih gerbil
 # Now at the tail
-it 5
-it 1
+it meerkat
+it bear
 # Reverse it
 reverse
 # See how long it is

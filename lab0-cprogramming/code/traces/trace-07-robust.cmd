@@ -1,7 +1,9 @@
-# Test operations on empty queue
+# Test operations on NULL queue
 option fail 10
 option malloc 0
-new
+free
+ih bear
+it dolphin
 rh
 reverse
 size

@@ -2,23 +2,23 @@
 option fail 0
 option malloc 0
 new
-ih 2
-ih 1
-ih 3
+ih dolphin
+ih bear
+ih gerbil
 reverse
-it 5
-it 1
-it 3
+it meerkat
+it bear
+it gerbil
 reverse
-it 7
+it squirrel
 reverse
-rh 7
-ih 8
+rh squirrel
+ih vulture
 reverse
-rh 3
-rh 1
-rh 5
-rh 3
-rh 1
-rh 2
-rh 8
+rh gerbil
+rh bear
+rh meerkat
+rh gerbil
+rh bear
+rh dolphin
+rh vulture

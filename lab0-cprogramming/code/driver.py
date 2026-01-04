@@ -1,151 +1,156 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+# Driver program for C programming exercise
 
+import argparse
+import collections
+import json
+import os.path
 import subprocess
 import sys
-import getopt
 
-# Driver program for C programming exercise
+
 class Tracer:
-    
+
     traceDirectory = "./traces"
-    qtest = "./qtest"
-    verbLevel = 0
-    autograde = False
 
     traceDict = {
-        1 : "trace-01-ops",
-        2 : "trace-02-ops",
-        3 : "trace-03-ops",
-        4 : "trace-04-ops",
-        5 : "trace-05-ops",
-        6 : "trace-06-robust",
-        7 : "trace-07-robust",
-        8 : "trace-08-robust",
-        9 : "trace-09-malloc",
-        10 : "trace-10-malloc",
-        11 : "trace-11-malloc",
-        12 : "trace-12-perf",
-        13 : "trace-13-perf",
-        14 : "trace-14-perf"
-        }
+        1: "trace-01-ops",
+        2: "trace-02-ops",
+        3: "trace-03-ops",
+        4: "trace-04-ops",
+        5: "trace-05-ops",
+        6: "trace-06-string",
+        7: "trace-07-robust",
+        8: "trace-08-robust",
+        9: "trace-09-robust",
+        10: "trace-10-malloc",
+        11: "trace-11-malloc",
+        12: "trace-12-malloc",
+        13: "trace-13-perf",
+        14: "trace-14-perf",
+        15: "trace-15-perf",
+    }
 
     traceProbs = {
-        1 : "Trace-01",
-        2 : "Trace-02",
-        3 : "Trace-03",
-        4 : "Trace-04",
-        5 : "Trace-05",
-        6 : "Trace-06",
-        7 : "Trace-07",
-        8 : "Trace-08",
-        9 : "Trace-09",
-        10 : "Trace-10",
-        11 : "Trace-11",
-        12 : "Trace-12",
-        13 : "Trace-13",
-        14 : "Trace-14"
-        }
+        1: "Trace-01",
+        2: "Trace-02",
+        3: "Trace-03",
+        4: "Trace-04",
+        5: "Trace-05",
+        6: "Trace-06",
+        7: "Trace-07",
+        8: "Trace-08",
+        9: "Trace-09",
+        10: "Trace-10",
+        11: "Trace-11",
+        12: "Trace-12",
+        13: "Trace-13",
+        14: "Trace-14",
+        15: "Trace-15",
+    }
 
+    maxScores = [0, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
 
-    maxScores = [0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8]
-
-    def __init__(self, qtest = "", verbLevel = 0, autograde = False):
-        if qtest != "":
-            self.qtest = qtest
+    def __init__(self, qtest, verbLevel=0, autograde=False):
+        self.qtest = qtest
         self.verbLevel = verbLevel
         self.autograde = autograde
 
-    def runTrace(self, tid):
-        if not tid in self.traceDict:
-            print "ERROR: No trace with id %d" % tid
+    def runTrace(self, trace_id):
+        if trace_id not in self.traceDict:
+            print("ERROR: No trace with id {}".format(trace_id))
             return False
-        fname = "%s/%s.cmd" % (self.traceDirectory, self.traceDict[tid])
-        vname = "%d" % self.verbLevel
-        clist = [self.qtest, "-v", vname, "-f", fname]
+
+        fname = os.path.join(self.traceDirectory,
+                             "{}.cmd".format(self.traceDict[trace_id]))
+        clist = [
+            self.qtest,
+            "-v", "{}".format(self.verbLevel),
+            "-f", fname,
+        ]
+
+        if self.verbLevel > 0:
+            print(" ".join(clist))
+        sys.stdout.flush()
+
         try:
             retcode = subprocess.call(clist)
         except Exception as e:
-            print "Call of '%s' failed: %s" % (" ".join(clist), e)
+            print("Call of '{}' failed: {}".format(" ".join(clist), e))
             return False
+
         return retcode == 0
 
-    def run(self, tid = 0):
-        scoreDict = { }
-        for k in self.traceDict.keys():
-            scoreDict[k] = 0
-        print "---\tTrace\t\tPoints"
-        if tid == 0:
+    def run(self, tid=None):
+        print("---\tTrace\t\tPoints")
+
+        # Determine list of traces to test
+        if tid is None:
             tidList = self.traceDict.keys()
         else:
-            if not tid in self.traceDict:
-                print "ERROR: Invalid trace ID %d" % tid
+            if tid not in self.traceDict:
+                print("ERROR: Invalid trace ID {}".format(tid))
                 return
             tidList = [tid]
+
+        # Run each trace and collect scores
         score = 0
         maxscore = 0
-        for t in tidList:
-            tname = self.traceDict[t]
+        scoreDict = {k: 0 for k in self.traceDict.keys()}
+        for trace_id in tidList:
+            # Run the trace file
+            trace_name = self.traceDict[trace_id]
             if self.verbLevel > 0:
-                print "+++ TESTING trace %s:" % tname
-            ok = self.runTrace(t)
-            maxval = self.maxScores[t]
+                print()
+                print("+++ TESTING trace {}:".format(trace_name))
+            ok = self.runTrace(trace_id)
+
+            # Print score of this run
+            maxval = self.maxScores[trace_id]
             tval = maxval if ok else 0
-            print "---\t%s\t%d/%d" % (tname, tval, maxval)
+            print("---\t{}\t{}/{}".format(trace_name, tval, maxval))
+
+            # Accumulate score
             score += tval
             maxscore += maxval
-            scoreDict[t] = tval
-        print "---\tTOTAL\t\t%d/%d" % (score, maxscore)
+            scoreDict[trace_id] = tval
+
+        print("---\tTOTAL\t\t{}/{}".format(score, maxscore))
+
         if self.autograde:
-            # Generate JSON string
-            jstring = '{"scores": {'
-            first = True
-            for k in scoreDict.keys():
-                if not first:
-                    jstring += ', '
-                first = False
-                jstring += '"%s" : %d' % (self.traceProbs[k], scoreDict[k])
-            jstring += '}}'
-            print jstring
+            # Generate JSON string for autograder
+            scores = collections.OrderedDict([
+                (self.traceProbs[k], score)
+                for (k, score) in scoreDict.items()
+            ])
+            print(json.dumps(dict(scores=scores)))
 
-def usage(name):
-    print "Usage: %s [-h] [-p PROG] [-t TID] [-v VLEVEL]" % name
-    print "  -h        Print this message"
-    print "  -p PROG   Program to test"
-    print "  -t TID    Trace ID to test"
-    print "  -v VLEVEL Set verbosity level (0-3)"
-    sys.exit(0)
 
-def run(name, args):
-    prog = ""
-    tid = 0
-    vlevel = 1
-    levelFixed = False
-    autograde = False
-    
+def run():
+    parser = argparse.ArgumentParser(
+        description='Runs the cprogramminglab driver')
+    parser.add_argument('-p', metavar='PROG',
+                        default='./qtest', help='Program to test')
+    parser.add_argument('-t', metavar='TID',
+                        type=int, help='Trace ID to test')
+    parser.add_argument('-v', metavar='VLEVEL',
+                        type=int, choices=[0, 1, 2, 3],
+                        help='Set verbosity level (0-3)')
+    parser.add_argument('-A', action='store_true', help=argparse.SUPPRESS)
 
-    optlist, args = getopt.getopt(args, 'hp:t:v:A')
-    for (opt, val) in optlist:
-        if opt == '-h':
-            usage(name)
-        elif opt == '-p':
-            prog = val
-        elif opt == '-t':
-            tid = int(val)
-        elif opt == '-v':
-            vlevel = int(val)
-            levelFixed = True
-        elif opt == '-A':
-            autograde = True
-        else:
-            print "Unrecognized option '%s'" % opt
-            usage(name)
-    if not levelFixed and autograde:
-        vlevel = 0
-    t = Tracer(qtest = prog, verbLevel = vlevel, autograde = autograde)
+    args = parser.parse_args()
+    prog = args.p
+    tid = args.t
+    vlevel = args.v
+    autograde = args.A
+
+    if vlevel is None:
+        # Default verbosity is 0 for autograde, 1 otherwise
+        vlevel = 0 if autograde else 1
+
+    t = Tracer(qtest=prog, verbLevel=vlevel, autograde=autograde)
     t.run(tid)
 
-if __name__ == "__main__":
-    run(sys.argv[0], sys.argv[1:])
-            
-        
 
+if __name__ == "__main__":
+    run()

@@ -1,22 +1,37 @@
-CC = gcc
-CFLAGS = -O0 -g -Wall -Werror
+# -*- Makefile -*- for cprogramminglab (handout edition)
 
-all: qtest
-	-tar -cf handin.tar queue.c queue.h
+CC = clang
+CFLAGS = -std=c11 -Og -g -Werror -Wall -Wextra -Wpedantic -Wconversion
+CFLAGS += -Wstrict-prototypes -Wmissing-prototypes -Wwrite-strings
+CFLAGS += -gdwarf-4 -Wno-unused-parameter -fsanitize=address,undefined
+LDFLAGS = -fsanitize=address,undefined
 
-queue.o: queue.c queue.h harness.h
-	$(CC) $(CFLAGS) -c queue.c 
+PROGRAMS = qtest
+all: $(PROGRAMS)
 
-qtest: qtest.c report.c console.c harness.c queue.o
-	$(CC) $(CFLAGS) -o qtest qtest.c report.c console.c harness.c queue.o
-	tar cf handin.tar queue.c queue.h
+# Linking rules
+qtest: qtest.o report.o console.o harness.o queue.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test: qtest driver.py
-	chmod +x driver.py
+# Header dependencies
+console.o: console.c console.h report.h
+harness.o: harness.c harness.h report.h
+qtest.o: qtest.c console.h harness.h queue.h report.h
+queue.o: queue.c harness.h queue.h
+report.o: report.c report.h
+
+# Tests
+check: qtest driver.py
 	./driver.py
 
 clean:
-	rm -f *.o *~ qtest 
-	rm -rf *.dSYM
-	(cd traces; rm -f *~)
+	rm -f *.o $(PROGRAMS)
 
+.PHONY: all check clean
+
+# Code formatting and submission is handled by helper.mk.
+HANDOUT_SCRIPTS = driver.py
+HANDIN_TAR = cprogramminglab-handin.tar
+HANDIN_FILES = queue.c queue.h .clang-format .format-checked
+FORMAT_FILES = queue.c queue.h
+include helper.mk

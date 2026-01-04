@@ -2,15 +2,15 @@
 option fail 0
 option malloc 0
 new
-ih 3
-ih 1
-ih 2
-it 5
-it 1
-it 3
-rh 2
-rh 1
-rh 3
-rh 5
-rh 1
-rh 3
+ih gerbil
+ih bear
+ih dolphin
+it meerkat
+it bear
+it gerbil
+rh dolphin
+rh bear
+rh gerbil
+rh meerkat
+rh bear
+rh gerbil

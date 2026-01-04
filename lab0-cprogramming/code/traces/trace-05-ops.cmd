@@ -2,22 +2,22 @@
 option fail 0
 option malloc 0
 new
-ih 2
-ih 1
-ih 3
+ih dolphin
+ih bear
+ih gerbil
 reverse
 size
-it 5
-it 1
-it 3
+it meerkat
+it bear
+it gerbil
 size
-rh 2
+rh dolphin
 reverse
 size
-rh 3
-rh 1
-rh 5
-rh 3
-rh 1
+rh gerbil
+rh bear
+rh meerkat
+rh gerbil
+rh bear
 size
 free

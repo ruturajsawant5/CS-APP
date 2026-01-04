@@ -1,9 +1,11 @@
-# Test of malloc failure on insert_head
-option fail 30
-option malloc 0
+# Test of malloc failure on new
+option fail 10
+option malloc 50
 new
-option malloc 25
-ih 3 20
-
+new
+new
+new
+new
+new
 
 
